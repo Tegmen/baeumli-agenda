@@ -29,14 +29,14 @@
     let sessionPassword = null;
 
     // Function to add a task if the correct password is provided
-    function addTask(task, subject, dueDate, teacher, password) {
+    function addTask(task, className, dueDate, teacher, password) {
       if (sessionPassword || password) {
-        const className = subject;
         const taskRef = ref(db, `${className}/tasks/${Date.now()}`);
         set(taskRef, {
           task,
           due_date: dueDate,
           teacher,
+          className,
           password: sessionPassword || password
         });
         alert('Aufgabe erfolgreich hinzugefügt!');
@@ -49,7 +49,7 @@
     function handleFormSubmit(event) {
       event.preventDefault();
       const task = document.getElementById("task").value;
-      const subject = document.getElementById("subject").value;
+      const className = document.getElementById("class").value;
       const dueDate = document.getElementById("dueDate").value;
       const teacher = document.getElementById("teacher").value;
       const passwordField = document.getElementById("password");
@@ -59,34 +59,39 @@
       if (password) {
         sessionPassword = password;
         passwordField.style.display = "none";
+        document.getElementById("passwordLabel").style.display = "none";
       }
 
       // Add the task
-      addTask(task, subject, dueDate, teacher, password);
+      addTask(task, className, dueDate, teacher, password);
     }
   </script>
 </head>
 <body>
   <h1>Eintrag Bäumli-Agenda</h1>
 
-  <!-- Task entry form in German -->
+  <!-- Task entry form in German with fields in one line -->
   <form id="taskForm" onsubmit="handleFormSubmit(event)">
-    <label for="task">Aufgabe:</label>
-    <input type="text" id="task" placeholder="Aufgabe" required /><br><br>
+    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+      <label for="task">Aufgabe:</label>
+      <input type="text" id="task" placeholder="Aufgabe" required />
 
-    <label for="subject">Fach:</label>
-    <input type="text" id="subject" placeholder="Fach" required /><br><br>
+      <label for="class">Klasse:</label>
+      <input type="text" id="class" placeholder="Klasse" required />
 
-    <label for="dueDate">Fälligkeit:</label>
-    <input type="date" id="dueDate" required /><br><br>
+      <label for="dueDate">Fälligkeit:</label>
+      <input type="date" id="dueDate" required />
 
-    <label for="teacher">Lehrperson:</label>
-    <input type="text" id="teacher" placeholder="Lehrperson" required /><br><br>
+      <label for="teacher">Lehrperson:</label>
+      <input type="text" id="teacher" placeholder="Lehrperson" required />
+    </div>
 
-    <label for="password" id="passwordLabel">Passwort:</label>
-    <input type="password" id="password" placeholder="Passwort" /><br><br>
+    <div style="display: flex; gap: 10px;">
+      <label for="password" id="passwordLabel">Passwort:</label>
+      <input type="password" id="password" placeholder="Passwort" />
 
-    <button type="submit">Aufgabe hinzufügen</button>
+      <button type="submit">Eintragen</button>
+    </div>
   </form>
 </body>
 </html>
