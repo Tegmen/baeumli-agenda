@@ -1,52 +1,92 @@
-<script type="module">
-  // Firebase Config
-	import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-	import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eintrag Bäumli-Agenda</title>
 
-	const firebaseConfig = {
-	apiKey: "AIzaSyADHP-7WbK-eLTBKaz7XLaFicV_qpiRN4E",
-	authDomain: "bauemli-agenda.firebaseapp.com",
-	databaseURL: "https://bauemli-agenda-default-rtdb.europe-west1.firebasedatabase.app",
-	projectId: "bauemli-agenda",
-	storageBucket: "bauemli-agenda.firebasestorage.app",
-	messagingSenderId: "379163939889",
-	appId: "1:379163939889:web:9ed6ce9bd3bd892494f110",
-	measurementId: "G-YJG0HVYW11"
-};
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 
-	// Initialize Firebase
-	const app = initializeApp(firebaseConfig);
-	const db = getDatabase(app);
+    const firebaseConfig = {
+      apiKey: "AIzaSyADHP-7WbK-eLTBKaz7XLaFicV_qpiRN4E",
+      authDomain: "bauemli-agenda.firebaseapp.com",
+      databaseURL: "https://bauemli-agenda-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "bauemli-agenda",
+      storageBucket: "bauemli-agenda.appspot.com",
+      messagingSenderId: "379163939889",
+      appId: "1:379163939889:web:9ed6ce9bd3bd892494f110",
+      measurementId: "G-YJG0HVYW11"
+    };
 
-  // Secret key for write access
-  const SECRET_KEY = "eTT40#w26C33";
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-  // Function to add a task
-  function addTask(task, className, dueDate, teacher) {
-    const taskRef = ref(db, `${className}/tasks/${Date.now()}`);
-    set(taskRef, {
-      task,
-      due_date: dueDate,
-      teacher,
-      write_key: SECRET_KEY
-    });
-  }
+    // Variable to store password for the session
+    let sessionPassword = null;
 
-  // Example form submission handler
-  document.getElementById("taskForm").onsubmit = function (e) {
-    e.preventDefault();
-    const task = document.getElementById("task").value;
-    const className = document.getElementById("class").value;
-    const dueDate = document.getElementById("dueDate").value;
-    const teacher = document.getElementById("teacher").value;
-    addTask(task, className, dueDate, teacher);
-  };
-</script>
+    // Function to add a task if the correct password is provided
+    function addTask(task, subject, dueDate, teacher, password) {
+      if (sessionPassword || password) {
+        const className = subject;
+        const taskRef = ref(db, `${className}/tasks/${Date.now()}`);
+        set(taskRef, {
+          task,
+          due_date: dueDate,
+          teacher,
+          password: sessionPassword || password
+        });
+        alert('Aufgabe erfolgreich hinzugefügt!');
+      } else {
+        alert("Bitte geben Sie das Passwort ein.");
+      }
+    }
 
-<form id="taskForm">
-  <input id="task" placeholder="Task" required />
-  <input id="class" placeholder="Class" required />
-  <input id="dueDate" type="date" required />
-  <input id="teacher" placeholder="Teacher" required />
-  <button type="submit">Add Task</button>
-</form>
+    // Function to handle form submission
+    function handleFormSubmit(event) {
+      event.preventDefault();
+      const task = document.getElementById("task").value;
+      const subject = document.getElementById("subject").value;
+      const dueDate = document.getElementById("dueDate").value;
+      const teacher = document.getElementById("teacher").value;
+      const passwordField = document.getElementById("password");
+      const password = passwordField.value;
+
+      // If password is entered, save it for the session and hide the field
+      if (password) {
+        sessionPassword = password;
+        passwordField.style.display = "none";
+      }
+
+      // Add the task
+      addTask(task, subject, dueDate, teacher, password);
+    }
+  </script>
+</head>
+<body>
+  <h1>Eintrag Bäumli-Agenda</h1>
+
+  <!-- Task entry form in German -->
+  <form id="taskForm" onsubmit="handleFormSubmit(event)">
+    <label for="task">Aufgabe:</label>
+    <input type="text" id="task" placeholder="Aufgabe" required /><br><br>
+
+    <label for="subject">Fach:</label>
+    <input type="text" id="subject" placeholder="Fach" required /><br><br>
+
+    <label for="dueDate">Fälligkeit:</label>
+    <input type="date" id="dueDate" required /><br><br>
+
+    <label for="teacher">Lehrperson:</label>
+    <input type="text" id="teacher" placeholder="Lehrperson" required /><br><br>
+
+    <label for="password" id="passwordLabel">Passwort:</label>
+    <input type="password" id="password" placeholder="Passwort" /><br><br>
+
+    <button type="submit">Aufgabe hinzufügen</button>
+  </form>
+</body>
+</html>
