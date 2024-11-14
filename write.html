@@ -25,24 +25,20 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Variable to store password for the session
-    let sessionPassword = null;
+    // Predefined password stored in the HTML file
+    const sessionPassword = "YOUR_PASSWORD_HERE"; // Replace YOUR_PASSWORD_HERE with the actual password
 
-    // Function to add a task if the correct password is provided
-    function addTask(task, className, dueDate, teacher, password) {
-      if (sessionPassword || password) {
-        const taskRef = ref(db, `${className}/tasks/${Date.now()}`);
-        set(taskRef, {
-          task,
-          due_date: dueDate,
-          teacher,
-          className,
-          password: sessionPassword || password
-        });
-        alert('Aufgabe erfolgreich hinzugefügt!');
-      } else {
-        alert("Bitte geben Sie das Passwort ein.");
-      }
+    // Function to add a task with predefined password
+    function addTask(task, className, dueDate, teacher) {
+      const taskRef = ref(db, `${className}/tasks/${Date.now()}`);
+      set(taskRef, {
+        task,
+        due_date: dueDate,
+        teacher,
+        className,
+        password: sessionPassword
+      });
+      alert('Aufgabe erfolgreich hinzugefügt!');
     }
 
     // Function to handle form submission
@@ -52,18 +48,9 @@
       const className = document.getElementById("class").value;
       const dueDate = document.getElementById("dueDate").value;
       const teacher = document.getElementById("teacher").value;
-      const passwordField = document.getElementById("password");
-      const password = passwordField.value;
 
-      // If password is entered, save it for the session and hide the field
-      if (password) {
-        sessionPassword = password;
-        passwordField.style.display = "none";
-        document.getElementById("passwordLabel").style.display = "none";
-      }
-
-      // Add the task
-      addTask(task, className, dueDate, teacher, password);
+      // Add the task with the stored password
+      addTask(task, className, dueDate, teacher);
     }
   </script>
 </head>
@@ -86,12 +73,7 @@
       <input type="text" id="teacher" placeholder="Lehrperson" required />
     </div>
 
-    <div style="display: flex; gap: 10px;">
-      <label for="password" id="passwordLabel">Passwort:</label>
-      <input type="password" id="password" placeholder="Passwort" />
-
-      <button type="submit">Eintragen</button>
-    </div>
+    <button type="submit">Eintragen</button>
   </form>
 </body>
 </html>
