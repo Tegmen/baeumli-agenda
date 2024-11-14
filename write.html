@@ -1,0 +1,52 @@
+<script type="module">
+  // Firebase Config
+	import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+	import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+
+	const firebaseConfig = {
+	apiKey: "AIzaSyADHP-7WbK-eLTBKaz7XLaFicV_qpiRN4E",
+	authDomain: "bauemli-agenda.firebaseapp.com",
+	databaseURL: "https://bauemli-agenda-default-rtdb.europe-west1.firebasedatabase.app",
+	projectId: "bauemli-agenda",
+	storageBucket: "bauemli-agenda.firebasestorage.app",
+	messagingSenderId: "379163939889",
+	appId: "1:379163939889:web:9ed6ce9bd3bd892494f110",
+	measurementId: "G-YJG0HVYW11"
+};
+
+	// Initialize Firebase
+	const app = initializeApp(firebaseConfig);
+	const db = getDatabase(app);
+
+  // Secret key for write access
+  const SECRET_KEY = "eTT40#w26C33";
+
+  // Function to add a task
+  function addTask(task, className, dueDate, teacher) {
+    const taskRef = ref(db, `${className}/tasks/${Date.now()}`);
+    set(taskRef, {
+      task,
+      due_date: dueDate,
+      teacher,
+      write_key: SECRET_KEY
+    });
+  }
+
+  // Example form submission handler
+  document.getElementById("taskForm").onsubmit = function (e) {
+    e.preventDefault();
+    const task = document.getElementById("task").value;
+    const className = document.getElementById("class").value;
+    const dueDate = document.getElementById("dueDate").value;
+    const teacher = document.getElementById("teacher").value;
+    addTask(task, className, dueDate, teacher);
+  };
+</script>
+
+<form id="taskForm">
+  <input id="task" placeholder="Task" required />
+  <input id="class" placeholder="Class" required />
+  <input id="dueDate" type="date" required />
+  <input id="teacher" placeholder="Teacher" required />
+  <button type="submit">Add Task</button>
+</form>
