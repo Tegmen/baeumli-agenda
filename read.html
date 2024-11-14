@@ -1,71 +1,94 @@
-<script type="module">
-  // Import Firebase modules
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>School Agenda</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#3f51b5">
+  
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 
-  // Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyADHP-7WbK-eLTBKaz7XLaFicV_qpiRN4E",
-    authDomain: "bauemli-agenda.firebaseapp.com",
-    databaseURL: "https://bauemli-agenda-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "bauemli-agenda",
-    storageBucket: "bauemli-agenda.appspot.com",
-    messagingSenderId: "379163939889",
-    appId: "1:379163939889:web:9ed6ce9bd3bd892494f110",
-    measurementId: "G-YJG0HVYW11"
-  };
+    const firebaseConfig = {
+      apiKey: "AIzaSyADHP-7WbK-eLTBKaz7XLaFicV_qpiRN4E",
+      authDomain: "bauemli-agenda.firebaseapp.com",
+      databaseURL: "https://bauemli-agenda-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "bauemli-agenda",
+      storageBucket: "bauemli-agenda.appspot.com",
+      messagingSenderId: "379163939889",
+      appId: "1:379163939889:web:9ed6ce9bd3bd892494f110",
+      measurementId: "G-YJG0HVYW11"
+    };
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-  // Function to populate dropdown with classes from Firebase
-  function loadClasses() {
-    const classesRef = ref(db);
-    onValue(classesRef, (snapshot) => {
-      const classes = snapshot.val();
-      const classSelect = document.getElementById("classSelect");
-      classSelect.innerHTML = ""; // Clear previous options
+    // Function to load classes dynamically
+    function loadClasses() {
+      const classesRef = ref(db);
+      onValue(classesRef, (snapshot) => {
+        const classes = snapshot.val();
+        const classSelect = document.getElementById("classSelect");
+        classSelect.innerHTML = ""; // Clear previous options
 
-      // Populate dropdown with classes
-      for (let className in classes) {
-        const option = document.createElement("option");
-        option.value = className;
-        option.textContent = className;
-        classSelect.appendChild(option);
-      }
-    });
-  }
-
-  // Function to load tasks for a selected class
-  function loadTasks(className) {
-    const tasksRef = ref(db, `${className}/tasks`);
-    onValue(tasksRef, (snapshot) => {
-      const tasks = snapshot.val();
-      const taskList = document.getElementById("taskList");
-      taskList.innerHTML = ""; // Clear previous tasks
-      if (tasks) {
-        for (let key in tasks) {
-          const task = tasks[key];
-          taskList.innerHTML += `<li>${task.task} - Due: ${task.due_date} (Teacher: ${task.teacher})</li>`;
+        // Populate dropdown with classes
+        for (let className in classes) {
+          const option = document.createElement("option");
+          option.value = className;
+          option.textContent = className;
+          classSelect.appendChild(option);
         }
-      } else {
-        taskList.innerHTML = "<li>No tasks available</li>";
-      }
+      });
+    }
+
+    // Function to load tasks for a selected class
+    function loadTasks(className) {
+      const tasksRef = ref(db, `${className}/tasks`);
+      onValue(tasksRef, (snapshot) => {
+        const tasks = snapshot.val();
+        const taskList = document.getElementById("taskList");
+        taskList.innerHTML = ""; // Clear previous tasks
+        if (tasks) {
+          for (let key in tasks) {
+            const task = tasks[key];
+            taskList.innerHTML += `<li>${task.task} - Due: ${task.due_date} (Teacher: ${task.teacher})</li>`;
+          }
+        } else {
+          taskList.innerHTML = "<li>No tasks available</li>";
+        }
+      });
+    }
+
+    // Initialize class dropdown and load tasks on selection change
+    document.addEventListener("DOMContentLoaded", () => {
+      loadClasses(); // Load classes when the page loads
+      document.getElementById("classSelect").onchange = function () {
+        loadTasks(this.value); // Load tasks when a class is selected
+      };
     });
-  }
+  </script>
 
-  // Initialize class dropdown and load tasks on selection change
-  document.getElementById("classSelect").onchange = function () {
-    loadTasks(this.value);
-  };
-
-  // Load classes on page load
-  window.onload = loadClasses;
-</script>
-
-<!-- HTML for Class Selection and Task List Display -->
-<select id="classSelect">
-  <option value="">Select a class</option>
-</select>
-<ul id="taskList"></ul>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then((registration) => {
+          console.log('Service Worker registered with scope:', registration.scope);
+        })
+        .catch((error) => {
+          console.log('Service Worker registration failed:', error);
+        });
+    }
+  </script>
+</head>
+<body>
+  <h1>School Agenda</h1>
+  <select id="classSelect">
+    <option value="">Select a class</option>
+  </select>
+  <ul id="taskList"></ul>
+</body>
+</html>
