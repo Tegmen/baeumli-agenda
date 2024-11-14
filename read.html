@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>School Agenda</title>
+  <title>Bäumli-Agenda</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#3f51b5">
   
@@ -45,20 +45,53 @@
       });
     }
 
-    // Function to load tasks for a selected class
+    // Format date to German locale
+    function formatDate(date) {
+      return new Intl.DateTimeFormat('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(date);
+    }
+
+    // Filter and group tasks by due date
     function loadTasks(className) {
       const tasksRef = ref(db, `${className}/tasks`);
       onValue(tasksRef, (snapshot) => {
         const tasks = snapshot.val();
         const taskList = document.getElementById("taskList");
         taskList.innerHTML = ""; // Clear previous tasks
+
         if (tasks) {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0); // Set to the start of the day for accurate comparisons
+          const tasksByDate = {};
+
+          // Filter and group tasks by due date
           for (let key in tasks) {
             const task = tasks[key];
-            taskList.innerHTML += `<li>${task.task} - Due: ${task.due_date} (Teacher: ${task.teacher})</li>`;
+            const dueDate = new Date(task.due_date);
+            dueDate.setHours(0, 0, 0, 0); // Ignore time portion for comparison
+
+            if (dueDate >= today) { // Only show tasks due today or later
+              const formattedDate = formatDate(dueDate);
+              if (!tasksByDate[formattedDate]) {
+                tasksByDate[formattedDate] = [];
+              }
+              tasksByDate[formattedDate].push(`${task.task} (${task.subject}, ${task.teacher})`);
+            }
+          }
+
+          // Display tasks grouped by due date
+          for (let date in tasksByDate) {
+            const dateHeader = document.createElement("h3");
+            dateHeader.textContent = date;
+            taskList.appendChild(dateHeader);
+
+            tasksByDate[date].forEach(taskText => {
+              const taskItem = document.createElement("li");
+              taskItem.textContent = taskText;
+              taskList.appendChild(taskItem);
+            });
           }
         } else {
-          taskList.innerHTML = "<li>No tasks available</li>";
+          taskList.innerHTML = "<li>Keine Aufgaben verfügbar</li>";
         }
       });
     }
@@ -85,10 +118,13 @@
   </script>
 </head>
 <body>
-  <h1>School Agenda</h1>
+  <h1>Bäumli-Agenda</h1>
+
+  <label for="classSelect">Wähle eine Klasse:</label>
   <select id="classSelect">
-    <option value="">Select a class</option>
+    <option value="">Klasse auswählen</option>
   </select>
+
   <ul id="taskList"></ul>
 </body>
 </html>
