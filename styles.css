@@ -1,0 +1,12 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+form, #tasks-list {
+    margin: 20px;
+    padding: 10px;
+    background-color: white;
+    border-radius: 5px;
+}

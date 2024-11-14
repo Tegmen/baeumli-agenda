@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bäumli Agenda</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Aufgaben und Prüfungen</h1>
+
+    <!-- Teacher Input Form -->
+    <form id="task-form">
+        <label for="task">Aufgabe:</label>
+        <input type="text" id="task" required>
+        <label for="class">Klasse:</label>
+        <input type="text" id="class" required>
+        <label for="dueDate">Fälligkeitsdatum:</label>
+        <input type="date" id="dueDate" required>
+        <button type="submit">Hinzufügen</button>
+    </form>
+
+    <!-- Student View -->
+    <div id="tasks-list"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
