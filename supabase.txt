@@ -1,0 +1,86 @@
+SUPABASE-INFO
+supabaseUrl = 'https://srhegccxceqeovyojrtm.supabase.co'
+supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNyaGVnY2N4Y2VxZW92eW9qcnRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE3OTg0MDksImV4cCI6MjA0NzM3NDQwOX0.HjCwlon-lqdt5RUwfAdPSCAb_nkzoV8_niMeGB6GAwE'
+
+TABLES
+create table
+  public.classes (
+    name text not null,
+    password text null,
+    is_regular boolean not null default true,
+    constraint classes_pkey primary key (name),
+    constraint classes_name_key unique (name)
+  ) tablespace pg_default;
+  
+  create table
+  public.tasks (
+    class text null,
+    short text null,
+    long text null,
+    date date null,
+    subject text null,
+    type text null,
+    id uuid not null default gen_random_uuid (),
+    constraint tasks_pkey primary key (id),
+    constraint tasks_id_key unique (id),
+    constraint tasks_class_fkey foreign key (class) references classes (name) on update cascade on delete cascade
+  ) tablespace pg_default;
+  
+  create table
+  public.teachers (
+    name text not null,
+    password text null,
+    constraint teachers_pkey primary key (name),
+    constraint teachers_name_key unique (name)
+  ) tablespace pg_default;
+  
+FUNCTIONS  
+[
+  {
+    "function_name": "add_task",
+    "function_definition": "CREATE OR REPLACE FUNCTION public.add_task(p_password text, p_class text, p_date date, p_subject text, p_short text, p_long text, p_type text)\n RETURNS text\n LANGUAGE plpgsql\nAS $function$\r\nDECLARE\r\n    valid_teacher BOOLEAN;\r\n    valid_class BOOLEAN;\r\nBEGIN\r\n    -- Check if the password matches any teacher\r\n    SELECT EXISTS (\r\n        SELECT 1\r\n        FROM teachers\r\n        WHERE password = p_password\r\n    ) INTO valid_teacher;\r\n\r\n    -- Check if the password matches the class's password\r\n    SELECT EXISTS (\r\n        SELECT 1\r\n        FROM classes\r\n        WHERE name = p_class AND password = p_password\r\n    ) INTO valid_class;\r\n\r\n    -- If either the teacher password or class password is valid\r\n    IF valid_teacher OR valid_class THEN\r\n        -- Insert the new task\r\n        INSERT INTO tasks (date, subject, short, long, class, type)\r\n        VALUES (p_date, p_subject, p_short, p_long, p_class, p_type);\r\n\r\n        -- Return success message\r\n        RETURN 'Aufgabe eingetragen';\r\n    ELSE\r\n        -- Return failure message\r\n        RETURN 'Ungültiges Passwort';\r\n    END IF;\r\nEND;\r\n$function$\n"
+  },
+  {
+    "function_name": "create_class",
+    "function_definition": "CREATE OR REPLACE FUNCTION public.create_class(p_password text, p_class_name text, p_class_password text, p_is_regular boolean)\n RETURNS text\n LANGUAGE plpgsql\nAS $function$\r\nDECLARE\r\n    valid_teacher BOOLEAN;\r\nBEGIN\r\n    -- Check if the provided password matches any teacher's password\r\n    SELECT EXISTS (\r\n        SELECT 1\r\n        FROM teachers\r\n        WHERE password = p_password\r\n    ) INTO valid_teacher;\r\n\r\n    -- If the password matches a teacher's password\r\n    IF valid_teacher THEN\r\n        -- Insert the new class into the classes table\r\n        INSERT INTO classes (name, password, is_regular)\r\n        VALUES (p_class_name, p_class_password, p_is_regular);\r\n\r\n        -- Return success message\r\n        RETURN 'Klasse erfolgreich erstellt';\r\n    ELSE\r\n        -- Return failure message\r\n        RETURN 'Ungültiges Passwort';\r\n    END IF;\r\nEND;\r\n$function$\n"
+  },
+  {
+    "function_name": "delete_class",
+    "function_definition": "CREATE OR REPLACE FUNCTION public.delete_class(teacher_pw text, class_name text)\n RETURNS text\n LANGUAGE plpgsql\nAS $function$\r\nDECLARE\r\n    valid_teacher BOOLEAN;\r\nBEGIN\r\n    -- Check if the provided teacher_pw matches any teacher's password\r\n    SELECT EXISTS (\r\n        SELECT 1\r\n        FROM teachers\r\n        WHERE password = teacher_pw\r\n    ) INTO valid_teacher;\r\n\r\n    -- If the password is valid, delete the class\r\n    IF valid_teacher THEN\r\n        -- Attempt to delete the class\r\n        DELETE FROM classes\r\n        WHERE name = class_name;\r\n\r\n        -- Check if the class was deleted\r\n        IF FOUND THEN\r\n            RETURN 'Klasse erfolgreich gelöscht';\r\n        ELSE\r\n            RETURN 'Klasse nicht gefunden';\r\n        END IF;\r\n    ELSE\r\n        -- Return failure message for invalid teacher password\r\n        RETURN 'Ungültiges Passwort';\r\n    END IF;\r\nEND;\r\n$function$\n"
+  },
+  {
+    "function_name": "set_class_password",
+    "function_definition": "CREATE OR REPLACE FUNCTION public.set_class_password(teacher_pw text, class_name text, class_password text)\n RETURNS text\n LANGUAGE plpgsql\nAS $function$\r\nDECLARE\r\n    valid_teacher BOOLEAN;\r\nBEGIN\r\n    -- Check if the provided teacher_pw matches any teacher's password\r\n    SELECT EXISTS (\r\n        SELECT 1\r\n        FROM teachers\r\n        WHERE password = teacher_pw\r\n    ) INTO valid_teacher;\r\n\r\n    -- If the teacher's password is valid, update the class password\r\n    IF valid_teacher THEN\r\n        -- Attempt to update the class password\r\n        UPDATE classes\r\n        SET password = class_password\r\n        WHERE name = class_name;\r\n\r\n        -- Check if the class password was updated\r\n        IF FOUND THEN\r\n            RETURN 'Klassenpasswort erfolgreich aktualisiert';\r\n        ELSE\r\n            RETURN 'Klasse nicht gefunden';\r\n        END IF;\r\n    ELSE\r\n        -- Return failure message for invalid teacher password\r\n        RETURN 'Ungültiges Passwort';\r\n    END IF;\r\nEND;\r\n$function$\n"
+  },
+  {
+    "function_name": "delete_task",
+    "function_definition": "CREATE OR REPLACE FUNCTION public.delete_task(p_password text, p_id uuid)\n RETURNS text\n LANGUAGE plpgsql\nAS $function$\r\nDECLARE\r\n    valid_teacher BOOLEAN;\r\n    valid_class BOOLEAN;\r\nBEGIN\r\n    -- Check if the password matches any teacher's password\r\n    SELECT EXISTS (\r\n        SELECT 1\r\n        FROM teachers\r\n        WHERE password = p_password\r\n    ) INTO valid_teacher;\r\n\r\n    -- Check if the password matches the class password of the task\r\n    SELECT EXISTS (\r\n        SELECT 1\r\n        FROM classes\r\n        WHERE password = p_password\r\n          AND name = (SELECT class FROM tasks WHERE id = p_id)\r\n    ) INTO valid_class;\r\n\r\n    -- If either password is valid\r\n    IF valid_teacher OR valid_class THEN\r\n        -- Delete the task with the matching ID\r\n        DELETE FROM tasks\r\n        WHERE id = p_id;\r\n\r\n        -- Check if the task was deleted\r\n        IF FOUND THEN\r\n            RETURN 'Aufgabe erfolgreich gelöscht';\r\n        ELSE\r\n            RETURN 'Aufgabe nicht gefunden';\r\n        END IF;\r\n    ELSE\r\n        -- Return failure message for invalid password\r\n        RETURN 'Ungültiges Passwort';\r\n    END IF;\r\nEND;\r\n$function$\n"
+  },
+  {
+    "function_name": "delete_old_tasks",
+    "function_definition": "CREATE OR REPLACE FUNCTION public.delete_old_tasks(teacher_pw text, age integer)\n RETURNS text\n LANGUAGE plpgsql\nAS $function$\r\nDECLARE\r\n    valid_teacher BOOLEAN;\r\n    cutoff_date DATE;\r\nBEGIN\r\n    -- Check if the provided teacher_pw matches any teacher's password\r\n    SELECT EXISTS (\r\n        SELECT 1\r\n        FROM teachers\r\n        WHERE password = teacher_pw\r\n    ) INTO valid_teacher;\r\n\r\n    -- If the password is valid\r\n    IF valid_teacher THEN\r\n        -- Calculate the cutoff date\r\n        cutoff_date := CURRENT_DATE - age;\r\n\r\n        -- Delete tasks older than the cutoff date\r\n        DELETE FROM tasks\r\n        WHERE date < cutoff_date;\r\n\r\n        -- Check if any tasks were deleted\r\n        IF FOUND THEN\r\n            RETURN 'Alte Aufgaben erfolgreich gelöscht';\r\n        ELSE\r\n            RETURN 'Keine alten Aufgaben gefunden';\r\n        END IF;\r\n    ELSE\r\n        -- Return failure message for invalid password\r\n        RETURN 'Ungültiges Passwort';\r\n    END IF;\r\nEND;\r\n$function$\n"
+  },
+  {
+    "function_name": "get_class_list",
+    "function_definition": "CREATE OR REPLACE FUNCTION public.get_class_list()\n RETURNS TABLE(class_name text, is_regular boolean)\n LANGUAGE plpgsql\nAS $function$\r\nBEGIN\r\n    RETURN QUERY\r\n    SELECT name, is_regular\r\n    FROM classes;\r\nEND;\r\n$function$\n"
+  },
+  {
+    "function_name": "test_class_password",
+    "function_definition": "CREATE OR REPLACE FUNCTION public.test_class_password(class_name text, class_password text)\n RETURNS boolean\n LANGUAGE plpgsql\nAS $function$\r\nDECLARE\r\n    is_valid BOOLEAN;\r\nBEGIN\r\n    -- Check if the provided password matches the class password\r\n    SELECT EXISTS (\r\n        SELECT 1\r\n        FROM classes\r\n        WHERE name = class_name AND password = class_password\r\n    ) INTO is_valid;\r\n\r\n    -- Return the result\r\n    RETURN is_valid;\r\nEND;\r\n$function$\n"
+  },
+  {
+    "function_name": "test_teacher_password",
+    "function_definition": "CREATE OR REPLACE FUNCTION public.test_teacher_password(teacher_pw text)\n RETURNS boolean\n LANGUAGE plpgsql\nAS $function$\r\nDECLARE\r\n    is_valid BOOLEAN;\r\nBEGIN\r\n    -- Check if the provided teacher_pw exists in the teachers table\r\n    SELECT EXISTS (\r\n        SELECT 1\r\n        FROM teachers\r\n        WHERE password = teacher_pw\r\n    ) INTO is_valid;\r\n\r\n    -- Return the result\r\n    RETURN is_valid;\r\nEND;\r\n$function$\n"
+  },
+  {
+    "function_name": "get_tasks",
+    "function_definition": "CREATE OR REPLACE FUNCTION public.get_tasks(class_name text)\n RETURNS TABLE(id uuid, date date, subject text, short text, long text, type text)\n LANGUAGE plpgsql\nAS $function$\r\nBEGIN\r\n    RETURN QUERY\r\n    SELECT \r\n        id,\r\n        date,\r\n        subject,\r\n        short,\r\n        long,\r\n        type\r\n    FROM tasks\r\n    WHERE class = class_name;\r\nEND;\r\n$function$\n"
+  }
+]
+
+Help me create a HTML/js site ("Bäumli-Agenda"), where teachers (and students who know the class password) can add orders and events and students can see upcoming orders/events. The UI should be in german. The site should be usable as both a website and a PWA saved on students phone.
+
+index.html
+
+on the top left show a drop down menu with all regular classes (get_class_list, only the ones with is_regular=true). By default a "Klasse" is selected (which does nothing). When selecting a class, display this classes schedule.
+

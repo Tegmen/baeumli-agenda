@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Service Worker Test</title>
+</head>
+<body>
+  <h1>Index Page</h1>
+  <p>Test site with Service Worker.</p>
+  <a href="settings.html">Go to Settings</a>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/test-site/service-worker.js')
+        .then(() => console.log('Service Worker registered!'))
+        .catch((err) => console.error('Service Worker registration failed:', err));
+    }
+  </script>
+</body>
+</html>
