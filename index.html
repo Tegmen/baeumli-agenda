@@ -3,20 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Service Worker Test</title>
+  <title>View Tasks</title>
 </head>
 <body>
-  <h1>Index Page</h1>
-  <p>Test site with Service Worker.</p>
-  <a href="settings.html">Go to Settings</a>
+  <h1>Task List</h1>
+  <ul id="task-list">
+    <!-- Task items will be populated here -->
+  </ul>
+  <a href="add-task.html">Add a Task</a>
 
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker
-        .register('/test-site/service-worker.js')
-        .then(() => console.log('Service Worker registered!'))
-        .catch((err) => console.error('Service Worker registration failed:', err));
+  <script type="module">
+    import Wrapper from './wrapper.js';
+
+    // Fetch tasks for a specific class
+    async function loadTasks() {
+      const tasks = await Wrapper.getTasks('class1');
+      const taskList = document.getElementById('task-list');
+      taskList.innerHTML = ''; // Clear previous tasks
+
+      if (tasks.length === 0) {
+        taskList.innerHTML = '<li>No tasks available.</li>';
+      } else {
+        tasks.forEach((task) => {
+          const li = document.createElement('li');
+          li.textContent = `${task.date} - ${task.subject}: ${task.short}`;
+          taskList.appendChild(li);
+        });
+      }
     }
+
+    // Load tasks on page load
+    loadTasks();
   </script>
 </body>
 </html>

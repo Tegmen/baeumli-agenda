@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Task</title>
+</head>
+<body>
+  <h1>Add a Task</h1>
+  <form id="task-form">
+    <label for="date">Date:</label>
+    <input type="date" id="date" required>
+    <label for="subject">Subject:</label>
+    <input type="text" id="subject" required>
+    <label for="short">Short Description:</label>
+    <input type="text" id="short" required>
+    <label for="long">Long Description:</label>
+    <textarea id="long" required></textarea>
+    <label for="type">Type:</label>
+    <select id="type">
+      <option value="homework">Homework</option>
+      <option value="project">Project</option>
+    </select>
+    <button type="submit">Add Task</button>
+  </form>
+  <a href="index.html">Back to Task List</a>
+
+  <script type="module">
+    import Wrapper from './wrapper.js';
+
+    const form = document.getElementById('task-form');
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const taskData = {
+        date: document.getElementById('date').value,
+        subject: document.getElementById('subject').value,
+        short: document.getElementById('short').value,
+        long: document.getElementById('long').value,
+        type: document.getElementById('type').value,
+      };
+
+      // Add task to the database
+      const result = await Wrapper.addTask('teacher_password', 'class1', taskData.date, taskData.subject, taskData.short, taskData.long, taskData.type);
+      alert(result);
+
+      // Redirect back to task list
+      window.location.href = 'index.html';
+    });
+  </script>
+</body>
+</html>
