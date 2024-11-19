@@ -8,13 +8,15 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 const Wrapper = {
   async getTasks(className) {
-    const { data, error } = await supabase.rpc('get_tasks', { class_name: className });
-    if (error) {
-      console.error('Error fetching tasks:', error);
-      return [];
-    }
-    return data;
-  },
+  const { data, error } = await supabase.rpc('get_tasks', { class_name: className });
+  if (error) {
+    console.error('Error fetching tasks:', error);
+    return [];
+  }
+  console.log('Supabase data:', data); // Debugging
+  return data;
+}
+,
 
   async addTask(password, className, date, subject, shortText, longText, type) {
     const { data, error } = await supabase.rpc('add_task', {
