@@ -3,37 +3,46 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>View Tasks</title>
+  <title>Supabase Wrapper Test</title>
 </head>
 <body>
-  <h1>Task List</h1>
-  <ul id="task-list">
-    <!-- Task items will be populated here -->
-  </ul>
-  <a href="add-task.html">Add a Task</a>
+  <h1>Supabase Wrapper Test</h1>
+  <p>Use the functions below to test Supabase integration.</p>
+
+  <button id="getTasks">Get Tasks</button>
+  <button id="addTask">Add Task</button>
+  <button id="deleteTask">Delete Task</button>
+
+  <p id="output"></p>
+
+  <a href="settings.html">Go to Settings</a>
 
   <script type="module">
     import Wrapper from './wrapper.js';
 
-    // Fetch tasks for a specific class
-    async function loadTasks() {
-      const tasks = await Wrapper.getTasks('class1');
-      const taskList = document.getElementById('task-list');
-      taskList.innerHTML = ''; // Clear previous tasks
+    // Attach event listeners to buttons
+    document.getElementById('getTasks').addEventListener('click', async () => {
+      const tasks = await Wrapper.getTasks('test-class');
+      document.getElementById('output').innerText = JSON.stringify(tasks, null, 2);
+    });
 
-      if (tasks.length === 0) {
-        taskList.innerHTML = '<li>No tasks available.</li>';
-      } else {
-        tasks.forEach((task) => {
-          const li = document.createElement('li');
-          li.textContent = `${task.date} - ${task.subject}: ${task.short}`;
-          taskList.appendChild(li);
-        });
-      }
-    }
+    document.getElementById('addTask').addEventListener('click', async () => {
+      const response = await Wrapper.addTask(
+        'teacher-password',
+        'test-class',
+        '2024-11-20',
+        'Math',
+        'Short Task',
+        'This is a long description of the task.',
+        'Homework'
+      );
+      document.getElementById('output').innerText = response;
+    });
 
-    // Load tasks on page load
-    loadTasks();
+    document.getElementById('deleteTask').addEventListener('click', async () => {
+      const response = await Wrapper.deleteTask('teacher-password', 'task-id');
+      document.getElementById('output').innerText = response;
+    });
   </script>
 </body>
 </html>

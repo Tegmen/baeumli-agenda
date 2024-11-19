@@ -1,19 +1,22 @@
-const CACHE_NAME = 'test-site-cache-v1';
+const CACHE_NAME = 'supabase-wrapper-test-v1';
 const urlsToCache = [
   '/test-site/',
   '/test-site/index.html',
-  '/test-site/add-task.html',
+  '/test-site/settings.html',
   '/test-site/wrapper.js',
 ];
 
-// Install event - Cache static assets
+// Install event
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('Opened cache');
+      return cache.addAll(urlsToCache);
+    })
   );
 });
 
-// Fetch event - Intercept requests
+// Fetch event
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((response) => {
@@ -22,17 +25,18 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Activate event - Cleanup old caches
+// Activate event
 self.addEventListener('activate', (event) => {
+  const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
-    caches.keys().then((cacheNames) =>
-      Promise.all(
-        cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            return caches.delete(cache);
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (!cacheWhitelist.includes(cacheName)) {
+            return caches.delete(cacheName);
           }
         })
-      )
-    )
+      );
+    })
   );
 });
